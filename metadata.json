@@ -1,0 +1,7 @@
+{
+  "name": "CardScanner Pro",
+  "description": "AI-powered business card scanner that intelligently extracts contact details and saves them to your iPhone contacts.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

@@ -1,8 +1,6 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { ContactData, SupportedLanguage } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
 // Using gemini-3-flash-preview for robust multimodal extraction (OCR) + JSON Schema support.
 const MODEL_NAME = 'gemini-3-flash-preview';
 
@@ -21,13 +19,16 @@ const getLanguagePrompt = (lang: SupportedLanguage): string => {
 
 export const analyzeBusinessCard = async (base64Image: string, language: SupportedLanguage): Promise<Partial<ContactData>> => {
   try {
+    // Lazily initialize AI client to avoid top-level failures
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
     // 1. Extract MIME type dynamically
     const mimeMatch = base64Image.match(/^data:(image\/[a-zA-Z+]+);base64,/);
     const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
 
     // 2. Remove the Data URL prefix to get raw base64
     const data = base64Image.replace(/^data:image\/[a-zA-Z+]+;base64,/, "");
-    
+
     const langInstruction = getLanguagePrompt(language);
 
     const response = await ai.models.generateContent({
@@ -66,15 +67,15 @@ export const analyzeBusinessCard = async (base64Image: string, language: Support
             givenName: { type: Type.STRING, description: "First name / Given name" },
             title: { type: Type.STRING, description: "Job Title" },
             company: { type: Type.STRING, description: "Company Name" },
-            mobilePhones: { 
-              type: Type.ARRAY, 
+            mobilePhones: {
+              type: Type.ARRAY,
               items: { type: Type.STRING },
               description: "List of all mobile/cell phone numbers found"
             },
             workPhone: { type: Type.STRING, description: "Work/Office telephone number" },
             fax: { type: Type.STRING, description: "Fax number" },
-            emails: { 
-              type: Type.ARRAY, 
+            emails: {
+              type: Type.ARRAY,
               items: { type: Type.STRING }
             },
             address: { type: Type.STRING, description: "Full physical address" },
